@@ -640,4 +640,3 @@ if run_clicked:
         file_name="literatur_output.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
-``
