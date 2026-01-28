@@ -1,4 +1,3 @@
-
 import hashlib
 import json
 from io import BytesIO
@@ -10,11 +9,54 @@ from openpyxl import load_workbook, Workbook
 from core_literatur_recherche9 import run_search_to_df, write_to_excel_bytes
 
 
+# ============================================================
+# WICHTIG (Deployment-Hinweis):
+# Um das Streamlit-Menü inkl. "View source" zuverlässig zu entfernen,
+# lege zusätzlich in deinem Repo diese Datei an:
+#
+#   .streamlit/config.toml
+#
+# mit folgendem Inhalt:
+#   [client]
+#   toolbarMode = "minimal"
+#
+# (Dann zeigt Streamlit nur noch extern/über set_page_config definierte
+# Menüeinträge – und wenn keine da sind, wird das Menü ausgeblendet.)
+# ============================================================
+
+
 # ----------------------------
 # Page setup
 # ----------------------------
-st.set_page_config(page_title="Literaturrecherche Tool", layout="wide")
-st.title("Literaturrecherche (v9.1) – Streamlit Frontend (Generisch + Präzise Filter)")
+st.set_page_config(
+    page_title="LiteraturrechercheTool",
+    layout="wide",
+    # In Kombination mit client.toolbarMode="minimal" sorgt ein leeres menu_items
+    # dafür, dass kein Menü (und damit auch kein "View source") angezeigt wird.
+    menu_items={}
+)
+
+# UI-Hardening (nicht 100% gegen DevTools, aber entfernt die "bequemen" Wege)
+st.markdown(
+    """
+    <style>
+      /* Streamlit "Chrome" ausblenden (Toolbar/Header/Footer) */
+      div[data-testid="stToolbar"] {visibility: hidden !important; height: 0px !important; position: fixed !important;}
+      div[data-testid="stHeader"] {visibility: hidden !important; height: 0px !important; position: fixed !important;}
+      #MainMenu {visibility: hidden !important;}
+      footer {visibility: hidden !important;}
+
+      /* Copy-to-clipboard Buttons in Code-Blöcken ausblenden (falls vorhanden) */
+      button[data-testid="stCopyToClipboardButton"] {display: none !important;}
+
+      /* Optional: obere Deko-Leiste (variiert je nach Streamlit-Version) */
+      div[data-testid="stDecoration"] {visibility: hidden !important; height: 0px !important;}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.title("LiteraturrechercheTool")
 
 
 # ----------------------------
@@ -52,6 +94,7 @@ DEFAULT_TEMPLATE_HEADERS = [
     "API Quelle",
     "OA URL",
 ]
+
 
 def make_template_bytes(sheet_name: str = "Final_Thema2", header_row: int = 1) -> bytes:
     """Erstellt ein neues Excel-Template mit einem Sheet und Header-Zeile."""
@@ -539,9 +582,6 @@ if run_clicked:
             "sources": sources_filter,
             "pub_types": pub_types_filter,
             "publisher_contains": publisher_contains.strip(),
-            # Optional: Score thresholds (nur falls du später feinjustieren willst)
-            # "min_score_normal": 8,
-            # "min_score_strict": 18,
         },
 
         # Queries nur im Expertenmodus übergeben; sonst leer => Core nutzt Variants aus user_query
@@ -600,3 +640,4 @@ if run_clicked:
         file_name="literatur_output.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
+``
